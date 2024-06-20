@@ -5,90 +5,112 @@
 ### 1.1. SELECT 문
 
 쿼리문: SELECT * FROM study.dbo.companyinfo
+
 설명: companyinfo 테이블의 모든 열과 행을 선택합니다.
 
 ### 1.2. DISTINCT
 
 쿼리문: SELECT DISTINCT InclnCtryCode FROM companyinfo
+
 설명: companyinfo 테이블에서 InclnCtryCode 열의 고유한 값만 선택합니다.
 
 ### 1.3. WHERE 절
 
 쿼리문: SELECT * FROM companyinfo WHERE InclnCtryCode='kor'
+
 설명: companyinfo 테이블에서 InclnCtryCode가 'kor'인 행만 선택합니다.
 
 ### 1.4. AND, OR, NOT 연산자
 
 쿼리문: SELECT * FROM companyinfo WHERE InclnCtryCode='kor' AND Employees > 50000
+
 설명: companyinfo 테이블에서 InclnCtryCode가 'kor'이고 Employees가 50000보다 큰 행을 선택합니다.
 
 ### 1.5. LIKE와 와일드카드
 
 쿼리문: SELECT * FROM companyinfo WHERE name LIKE 'a%'
+
 설명: companyinfo 테이블에서 name이 'a'로 시작하는 행을 선택합니다.
 
 ### 1.6. ORDER BY
 
 쿼리문: SELECT InclnCtryCode, Employees, Name FROM companyinfo WHERE InclnCtryCode IS NOT NULL ORDER BY InclnCtryCode, Employees DESC
+
 설명: companyinfo 테이블에서 InclnCtryCode가 NULL이 아닌 행을 선택하고, InclnCtryCode로 오름차순 정렬한 후 Employees로 내림차순 정렬합니다.
 
 ## 2. 집계 함수
 ### 2.1. 집계 함수 사용
 
 쿼리문: SELECT MAX(Close_) AS 최고가, MIN(Close_) AS 최소가, AVG(Close_) AS 평균가 FROM StockPrice WHERE ID=40853
+
 설명: StockPrice 테이블에서 ID가 40853인 행의 Close_ 열에 대해 최댓값, 최솟값, 평균값을 구합니다.
 
 ### 2.2. GROUP BY
 
 쿼리문: SELECT City, SUM(Employees) AS 고용인, MAX(Employees) AS 최대고용, COUNT(*) AS 회사수 FROM CompanyInfo GROUP BY City ORDER BY 고용인 DESC
+
 설명: CompanyInfo 테이블에서 City별로 그룹화하여 고용인 수의 합계, 최대 고용인 수, 회사 수를 구하고 고용인 수를 기준으로 내림차순 정렬합니다.
 
 ### 2.3. HAVING
 
 쿼리문: SELECT City, SUM(Employees) AS 고용인, MAX(Employees) AS 최대고용, COUNT(*) AS 회사수 FROM CompanyInfo GROUP BY City HAVING SUM(Employees) >= 2000000 ORDER BY 고용인 DESC
+
 설명: CompanyInfo 테이블에서 City별로 그룹화하여 고용인 수의 합계, 최대 고용인 수, 회사 수를 구하고, 고용인 수의 합계가 2,000,000 이상인 그룹만 선택한 후 고용인 수를 기준으로 내림차순 정렬합니다.
 
 ## 3. 순위 및 분석 함수
 ### 3.1. ROW_NUMBER
 
 쿼리문: SELECT Name, Employees, ROW_NUMBER() OVER (ORDER BY Employees DESC) AS 순위 FROM companyinfo ORDER BY 순위
+
 설명: companyinfo 테이블에서 Employees를 기준으로 내림차순 순위를 매기고, 순위를 기준으로 정렬합니다.
 
 ### 3.2. LAG, LEAD
 
 쿼리문: SELECT Date_, Close_ AS 종가, LAG(Close_, 1) OVER (ORDER BY Date_) AS 어제종가, LEAD(Close_, 1) OVER (ORDER BY Date_) AS 내일종가 FROM StockPrice WHERE ID = 40853 ORDER BY Date_
+
 설명: StockPrice 테이블에서 ID가 40853인 행의 Date_를 기준으로 정렬하고, 각 행의 전날 종가와 다음날 종가를 함께 출력합니다.
+
 쿼리문: SELECT Date_, Close_/LAG(Close_, 1) OVER (ORDER BY Date_) - 1 AS 오늘수익률, LEAD(Close_, 1) OVER (ORDER BY Date_) / Close_ - 1 AS 내일수익률 FROM StockPrice WHERE ID = 40853 ORDER BY Date_
+
 설명: StockPrice 테이블에서 ID가 40853인 행의 Date_를 기준으로 정렬하고, 각 행의 오늘 수익률과 내일 수익률을 계산하여 출력합니다.
 
 ### 3.3. PARTITION BY
 
 쿼리문: SELECT Name, InclnCtryCode, RANK() OVER (PARTITION BY InclnCtryCode ORDER BY Employees DESC) AS 순위 FROM companyinfo WHERE InclnCtryCode IS NOT NULL ORDER BY 순위
+
 설명: companyinfo 테이블에서 InclnCtryCode로 파티션을 나누고, 각 파티션 내에서 Employees를 기준으로 순위를 매긴 후, 순위를 기준으로 정렬합니다.
+
 쿼리문: SELECT Date_, ID, Close_/LAG(Close_, 1) OVER (PARTITION BY ID ORDER BY Date_) - 1.0 AS 수익률 FROM StockPrice
+
 설명: StockPrice 테이블에서 ID별로 파티션을 나누고, 각 파티션 내에서 Date_를 기준으로 정렬한 후, 각 행의 수익률을 계산하여 출력합니다.
+
 쿼리문: SELECT Date_, ID, Close_, AVG(Close_) OVER (PARTITION BY ID ORDER BY DATE_ ROWS BETWEEN 2 PRECEDING AND 0 PRECEDING) AS SMA3 FROM StockPrice
+
 설명: StockPrice 테이블에서 ID별로 파티션을 나누고, 각 파티션 내에서 Date_를 기준으로 정렬한 후, 현재 행을 포함하여 이전 2개 행까지의 Close_의 평균을 계산하여 SMA3으로 출력합니다.
 
 ## 4. 조인(JOIN)
 ### 4.1. INNER JOIN
 
 쿼리문: SELECT c.Name, s.Date_, s.Close_ FROM companyinfo c JOIN StockPrice s ON c.ID = s.ID
+
 설명: companyinfo 테이블과 StockPrice 테이블을 ID 열을 기준으로 내부 조인하여 회사 이름, 날짜, 종가를 출력합니다.
 
 ### 4.2. LEFT JOIN
 
 쿼리문: SELECT c.Name, c.Ind_ID, i.Ind_Name FROM companyinfo c LEFT JOIN industryinfo i ON c.Ind_ID = i.Ind_ID
+
 설명: companyinfo 테이블을 기준으로 industryinfo 테이블을 Ind_ID 열을 기준으로 왼쪽 외부 조인하여 회사 이름, 산업 ID, 산업 이름을 출력합니다.
 
 ### 4.3. FULL OUTER JOIN
 
 쿼리문: SELECT c.Name, c.Ind_ID, i.Ind_Name FROM companyinfo c FULL OUTER JOIN industryinfo i ON c.Ind_ID = i.Ind_ID
+
 설명: companyinfo 테이블과 industryinfo 테이블을 Ind_ID 열을 기준으로 완전 외부 조인하여 회사 이름, 산업 ID, 산업 이름을 출력하고, 일치하지 않는 부분은 NULL로 채웁니다.
 
 ### 4.4. 다중 조인
 
 쿼리문: SELECT c.Name, c.ID, d.Fin_ID, d.Description FROM companyinfo c JOIN idmap i ON c.ID = i.ID JOIN descriptions d ON i.Fin_ID = d.Fin_ID
+
 설명: companyinfo 테이블, idmap 테이블, descriptions 테이블을 다중 조인하여 회사 이름, ID, 재무 ID, 설명을 출력합니다.
 
 ## 5. 서브쿼리
@@ -109,6 +131,7 @@ WHERE Close_ >= 500000
 ### 5.2. 단일 값 서브쿼리
 
 쿼리문: SELECT * FROM stockprice WHERE ID = 40853 AND Close_ = (SELECT MAX(Close_) FROM stockprice WHERE ID = 40853)
+
 설명: stockprice 테이블에서 ID가 40853이고 Close_가 해당 ID의 최댓값과 같은 행을 선택합니다.
 
 ### 5.3. 단일 열 서브쿼리
@@ -139,11 +162,13 @@ JOIN stockprice s ON a.ID = s.ID
 ### 6.2. 뷰 사용
 
 쿼리문: SELECT * FROM vw_stockpricewithname WHERE Name = 'NVIDIA' ORDER BY Date_
+
 설명: vw_stockpricewithname 뷰에서 회사 이름이 'NVIDIA'인 데이터를 날짜순으로 정렬하여 선택합니다.
 
 ### 6.3. 뷰 제거
 
 쿼리문: DROP VIEW vw_stockpricewithname
+
 설명: vw_stockpricewithname 뷰를 제거합니다.
 
 ## 7. WITH 구문
@@ -233,12 +258,15 @@ PRINT DATEADD(MONTH, 3, GETDATE())
 
 명시적 형변환: CAST
 암시적 형변환: CONVERT
+
 예시:
+```sql
+
 sqlCopyPRINT CAST(2023 AS VARCHAR) + N'년'
 PRINT CONVERT(VARCHAR, 2023) + N'년'
 PRINT CAST(GETDATE() AS VARCHAR)
 PRINT CONVERT(VARCHAR(8), GETDATE(), 112)
-
+```
 
 ## 12. 테이블 생성 및 수정
 ### 12.1. 테이블 생성
@@ -257,16 +285,19 @@ sqlCopyCREATE TABLE Persons (
 ### 12.2. 테이블 열 추가
 
 쿼리문: ALTER TABLE Persons ADD NewCol INT
+
 설명: Persons 테이블에 NewCol이라는 새로운 열을 추가합니다.
 
 ### 12.3. 테이블 열 삭제
 
 쿼리문: ALTER TABLE Persons DROP COLUMN NewCol
+
 설명: Persons 테이블에서 NewCol 열을 삭제합니다.
 
 ### 12.4. 테이블 열 데이터 타입 변경
 
 쿼리문: ALTER TABLE Persons ALTER COLUMN PersonID VARCHAR(255)
+
 설명: Persons 테이블의 PersonID 열의 데이터 타입을 VARCHAR(255)로 변경합니다.
 
 ## 13. 데이터 조작(DML)
@@ -280,7 +311,9 @@ VALUES ('Hitchcock', 'Alfred')
 
 ### 13.2. 데이터 삭제(DELETE)
 
+
 쿼리문: DELETE FROM Persons WHERE PersonID IS NULL
+
 설명: Persons 테이블에서 PersonID가 NULL인 행을 삭제합니다.
 
 ### 13.3. 데이터 수정(UPDATE)
@@ -400,8 +433,11 @@ END
 ### 16.3. 저장 프로시저 실행
 
 쿼리문: EXEC SP_SELECT_COMPANYINFO
+
 설명: SP_SELECT_COMPANYINFO 저장 프로시저를 실행합니다.
+
 쿼리문: EXEC SP_SELECT_STOCKPRICE 40853, '2020-10-01', '2020-10-13'
+
 설명: SP_SELECT_STOCKPRICE 저장 프로시저를 실행하고 기업 코드 40853, 시작일 '2020-10-01', 종료일 '2020-10-13'을 매개변수로 전달합니다.
 
 ## 17. 흐름 제어(Flow Control)
@@ -474,6 +510,7 @@ BEGIN
 END
 
 설명: 테이블 이름을 매개변수로 받아 해당 테이블의 데이터를 조회하는 SP_SELECT_TABLE_INFO 저장 프로시저를 생성합니다. 동적 SQL을 사용하여 쿼리를 문자열로 생성한 후 실행합니다.
+
 쿼리문:
 sqlCopyEXEC SP_SELECT_TABLE_INFO 'StockPrice'
 EXEC SP_SELECT_TABLE_INFO 'Companyinfo'
