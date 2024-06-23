@@ -6,8 +6,10 @@ ms-sql-file.md에서는 1. 기본 쿼리 2. 집계 함수 3. 순위 및 분석 �
 
 
 
+mssql-data-type 에서는 간단한 데이터 타입에 대한 형식 설명
 
 
+db-algorithm 에서는 mssql에서 사용되는 알고리즘에 대한 설명
  
 
 
